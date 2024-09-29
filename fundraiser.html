@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CrowdFunding Page</title>
+    <style>
+        .menus{
+            margin-bottom: 30px;
+            border-bottom: 1px solid #dddddd;
+            border-top: 1px solid #dddddd;
+            padding: 20px 0 ;
+        }
+        a {
+            text-decoration: none;
+            margin: 0 20px;
+        }
+        .top {
+            margin-bottom: 20px;
+        }
+        .top > div{
+            margin-bottom: 10px;
+        }
+        td, th {
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+<h1 id="page-name">Crowdfunding</h1>
+<div class="menus">
+    <a class="menu-i" href="./index.html">home</a>
+    <a class="menu-i" href="./fundraiser.html">fundraiser</a>
+</div>
+<div class="top">
+    <div>organizer：<select id="organizer"></select></div>
+    <div>category：<select id="category"></select></div>
+    <div>city：<select id="city"></select></div>
+    <div>
+        <button onclick="searchData()">Search</button>
+        <button onclick="resetDataList()">Reset</button>
+    </div>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>index</th>
+        <th>organizer</th>
+        <th>category</th>
+        <th>caption</th>
+        <th>target funding</th>
+        <th>current funding</th>
+        <th>city</th>
+        <th>action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Render against data -->
+    </tbody>
+</table>
+</body>
+<script>
+    const baseUrl = 'http://localhost:3000/';
+    function GET(api, params) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `${baseUrl}${api}?${new URLSearchParams(params).toString()}`, true);
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status == 200) {
+                        const result = JSON.parse(xhr.responseText);
+                        resolve(result);
+                    }
+                }
+            }
+        });
+    }
+</script>
+<script>
+    // search data
+    searchData();
+    function searchData() {
+        const category_id = document.getElementById('category').value;
+        const organizer = document.getElementById('organizer').value;
+        const city = document.getElementById('city').value;
+        GET('home/search', {category_id, organizer, city}).then(data => {
+            const tbody = document.getElementsByTagName('tbody')[0];
+            // reset element
+            tbody.innerHTML = '';
+            if (!!data.length < 1) {
+                tbody.innerHTML = '<div style="text-align: center;font-weight: bold;color: #FF0000">NO DATA</div>';
+            } else {
+                data.forEach(o => {
+                    // create tr
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${o.fundraiser_id}</td>
+                    <td>${o.organizer}</td>
+                    <td>${o.category_name}</td>
+                    <td>${o.caption}</td>
+                    <td>${o.target_funding}</td>
+                    <td>${o.current_funding}</td>
+                    <td>${o.city}</td>
+                    <td>
+                        <a href="./info.html?id=${o.fundraiser_id}"><button>view</button></a>
+                        <button id="donation-btn">Donation</button>
+                    </td>
+            `;
+                    tbody.appendChild(tr);
+                    const btn = document.getElementById(`donation-btn`);
+                    btn.onclick = () => {
+                        alert('This feature is under construction');
+                    }
+                });
+            }
+        });
+    }
+    // get category select options
+    getCategoryOptions();
+    function getCategoryOptions() {
+        GET('home/getCategoryOptions').then(data => {
+            document.getElementById('category').innerHTML = '<option value="" selected disabled>please select category</option>';
+            data.forEach(o => {
+                let option = document.createElement('option');
+                option.innerText = o.name;
+                option.value = o.category_id;
+                document.getElementById('category').appendChild(option);
+            });
+        });
+    }
+    // get organizer select options
+    getOrganizerOptions();
+    function getOrganizerOptions() {
+        document.getElementById('organizer').innerHTML = '<option value="" disabled selected>please select organizer</option>';
+        GET('home/getOrganizerOptions').then(data => {
+            data.forEach(o => {
+                const option = document.createElement('option');
+                option.innerText = o.organizer;
+                option.value = o.organizer;
+                document.getElementById('organizer').appendChild(option);
+            });
+        });
+    }
+    // get city select options
+    getCityOptions();
+    function getCityOptions() {
+        document.getElementById('city').innerHTML = '<option value="" disabled selected>please select city</option>';
+        GET('home/getCityOptions').then(data => {
+            data.forEach(o => {
+                const option = document.createElement('option');
+                option.innerText = o.city;
+                option.value = o.city;
+                document.getElementById('city').appendChild(option);
+            });
+        });
+    }
+
+    // reset all data
+    function resetDataList() {
+        document.getElementById('category').value = '';
+        document.getElementById('city').value = '';
+        document.getElementById('organizer').value = '';
+        searchData();
+    }
+</script>
+</html>
