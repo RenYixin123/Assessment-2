@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CrowdFunding Page</title>
+    <style>
+        .menus{
+            margin-bottom: 30px;
+            border-bottom: 1px solid #dddddd;
+            border-top: 1px solid #dddddd;
+            padding: 20px 0 ;
+        }
+        a {
+            text-decoration: none;
+            margin: 0 20px;
+        }
+        .info > div {
+            margin-bottom: 10px;
+        }
+        .fb {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1 id="page-name">Crowdfunding</h1>
+<div class="menus">
+    <a class="menu-i" href="./index.html">home</a>
+    <a class="menu-i" href="./fundraiser.html">fundraiser</a>
+</div>
+<div class="info">
+    <div><span class="fb">caption: </span><span id="caption"></span></div>
+    <div><span class="fb">category: </span><span id="category"></span></div>
+    <div><span class="fb">organizer:</span><span id="organizer"></span></div>
+    <div><span class="fb">city:</span><span id="city"></span></div>
+    <div><span class="fb">target funding:</span><span id="target_funding"></span></div>
+    <div><span class="fb">current funding:</span><span id="current_funding"></span></div>
+    <button onclick="donation()">Donation</button>
+</div>
+</body>
+<script>
+    const baseUrl = 'http://localhost:3000/';
+    function GET(api, params) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `${baseUrl}${api}?${new URLSearchParams(params).toString()}`, true);
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status == 200) {
+                        const result = JSON.parse(xhr.responseText);
+                        resolve(result);
+                    }
+                }
+            }
+        });
+    }
+</script>
+<script>
+    getInfo();
+    function getInfo() {
+        GET('home/getItemInfo', {
+            fundraiser_id: +location.search.split('=')[1]
+        }).then(data => {
+            const caption = document.getElementById('caption');
+            const category = document.getElementById('category');
+            const organizer = document.getElementById('organizer');
+            const city = document.getElementById('city');
+            const target_funding = document.getElementById('target_funding');
+            const current_funding = document.getElementById('current_funding');
+            // set field value
+            caption.innerText = data.caption;
+            category.innerText = data.category_name;
+            organizer.innerText = data.organizer;
+            city.innerText = data.city;
+            target_funding.innerText = data.target_funding;
+            current_funding.innerText = data.current_funding;
+        });
+    }
+
+    // donation btn
+    function donation() {
+        alert('This feature is under construction');
+    }
+</script>
+</html>
